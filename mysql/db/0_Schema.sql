@@ -21,8 +21,11 @@ CREATE TABLE isuumo.estate
     door_width_range_id INTEGER NOT NULL DEFAULT 0,
     features    VARCHAR(64)         NOT NULL,
     popularity  INTEGER             NOT NULL,
-    KEY `rent_id` (`rent` ASC, `id` ASC),
-    KEY `door_height_door_width_rent` (`door_height_range_id` ASC, `door_width_range_id` ASC, `rent_range_id` ASC)
+    KEY `rent_id` (`rent`,`id`),
+    KEY `door_height_door_width_rent` (`door_height_range_id`,`door_width_range_id`,`rent_range_id`),
+    KEY `door_width_and_door_height` (`door_width`,`door_height`),
+    KEY `rent_range_id` (`rent_range_id`),
+    KEY `door_height_range_id` (`door_height_range_id`)
 );
 
 CREATE TABLE isuumo.chair
