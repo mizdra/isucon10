@@ -26,7 +26,7 @@ const dbinfo = {
   password: process.env.MYSQL_PASS ?? "isucon",
   database: process.env.MYSQL_DBNAME ?? "isuumo",
   // TODO: max_connections は 14:03 現在 151, 増やせるかな？
-  connectionLimit: 10,
+  connectionLimit: 100,
 };
 
 const app = express();
