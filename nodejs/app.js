@@ -63,6 +63,7 @@ app.get("/api/estate/low_priced", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const es = await query(
+      // done: 素朴インデックスを貼った
       "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT ?",
       [LIMIT]
     );
@@ -81,7 +82,7 @@ app.get("/api/chair/low_priced", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const cs = await query(
-      // TODO: stock インデックスはるとよいのだろうか (index <= 0 は 13:49 現在 11 件ある)
+      // done: stock インデックスはるとよいのだろうか (index <= 0 は 13:49 現在 11 件ある)
       "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?",
       [LIMIT]
     );
