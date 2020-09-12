@@ -653,9 +653,11 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
       const rentRangeId = findRangeIdByRent(items[7]);
+      const doorHeightRangeId = getDoorHeightRangeId(items[8] | 0);
+      const doorWidthRangeId = getDoorWidthRangeId(items[9] | 0);
       await query(
-        "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity, rent_range_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        [...items, rentRangeId]
+        "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity, door_height_range_id, door_width_range_id, rent_range_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+        [...items, doorHeightRangeId, doorWidthRangeId, rentRangeId]
       );
     }
     await commit();
