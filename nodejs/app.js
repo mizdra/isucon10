@@ -1,7 +1,6 @@
 "use strict";
 
 const express = require("express");
-const morgan = require("morgan");
 const multer = require("multer");
 const mysql = require("mysql");
 const path = require("path");
@@ -51,7 +50,6 @@ const dbs = {
   'estate': db_estate,
 };
 
-app.use(morgan("combined"));
 app.use(express.json());
 app.post("/initialize", async (req, res, next) => {
   try {
