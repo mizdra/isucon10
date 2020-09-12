@@ -15,6 +15,7 @@ const promisify = util.promisify;
 const exec = promisify(cp.exec);
 const chairSearchCondition = require("../fixture/chair_condition.json");
 const estateSearchCondition = require("../fixture/estate_condition.json");
+const inside = require('point-in-polygon');
 
 const PORT = process.env.PORT ?? 1323;
 const LIMIT = 20;
@@ -464,6 +465,10 @@ app.post("/api/estate/req_doc/:id", async (req, res, next) => {
 
 app.post("/api/estate/nazotte", async (req, res, next) => {
   const coordinates = req.body.coordinates;
+
+  // ユーザがなぞった部分のポリゴンデータ
+  const polygon = coordinates.map((c) => [c.latitude, c.longitude]); // [[緯度, 経度], ...]
+
   const longitudes = coordinates.map((c) => c.longitude);
   const latitudes = coordinates.map((c) => c.latitude);
   const boundingbox = {
@@ -502,30 +507,9 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
       ]
     );
 
-    const estatesInPolygon = [];
-    for (const estate of estates) {
-      const point = util.format(
-        "'POINT(%f %f)'",
-        estate.latitude,
-        estate.longitude
-      );
-      // TODO: Geometry 型にできたりしないかな．そうしてインデックスを貼るべき？
-      const sql =
-        "SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))";
-      const coordinatesToText = util.format(
-        "'POLYGON((%s))'",
-        coordinates
-          .map((coordinate) =>
-            util.format("%f %f", coordinate.latitude, coordinate.longitude)
-          )
-          .join(",")
-      );
-      const sqlstr = util.format(sql, coordinatesToText, point);
-      const [e] = await query(sqlstr, [estate.id]);
-      if (e && Object.keys(e).length > 0) {
-        estatesInPolygon.push(e);
-      }
-    }
+    const estatesInPolygon = estates.filter((estate) => {
+      return inside([estate.latitude, estate.longitude], polygon);
+    });
 
     const results = {
       estates: [],
