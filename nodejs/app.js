@@ -19,8 +19,19 @@ const estateSearchCondition = require("../fixture/estate_condition.json");
 const PORT = process.env.PORT ?? 1323;
 const LIMIT = 20;
 const NAZOTTE_LIMIT = 50;
-const dbinfo = {
-  host: process.env.MYSQL_HOST ?? "127.0.0.1",
+
+const dbinfo_chair = {
+  host: '10.164.37.102', // 2 台目
+  port: process.env.MYSQL_PORT ?? 3306,
+  user: process.env.MYSQL_USER ?? "isucon",
+  password: process.env.MYSQL_PASS ?? "isucon",
+  database: process.env.MYSQL_DBNAME ?? "isuumo",
+  // TODO: max_connections は 14:03 現在 151, 増やせるかな？
+  connectionLimit: 100,
+};
+
+const dbinfo_estate = {
+  host: '10.164.37.103', // 3 台目
   port: process.env.MYSQL_PORT ?? 3306,
   user: process.env.MYSQL_USER ?? "isucon",
   password: process.env.MYSQL_PASS ?? "isucon",
@@ -30,8 +41,14 @@ const dbinfo = {
 };
 
 const app = express();
-const db = mysql.createPool(dbinfo);
-app.set("db", db);
+const db_chair = mysql.createPool(dbinfo_chair);
+const db_estate = mysql.createPool(dbinfo_estate);
+app.set("db_chair", db_chair);
+app.set("db_estate", db_estate);
+const dbs = {
+  'chair': db_chair,
+  'estate': db_estate,
+};
 
 app.use(morgan("combined"));
 app.use(express.json());
@@ -47,7 +64,10 @@ app.post("/initialize", async (req, res, next) => {
     const execfiles = dbfiles.map((file) => path.join(dbdir, file));
     for (const execfile of execfiles) {
       await exec(
-        `mysql -h ${dbinfo.host} -u ${dbinfo.user} -p${dbinfo.password} -P ${dbinfo.port} ${dbinfo.database} < ${execfile}`
+        `mysql -h ${dbinfo_chair.host} -u ${dbinfo_chair.user} -p${dbinfo_chair.password} -P ${dbinfo_chair.port} ${dbinfo_chair.database} < ${execfile}`
+      );
+      await exec(
+        `mysql -h ${dbinfo_estate.host} -u ${dbinfo_estate.user} -p${dbinfo_estate.password} -P ${dbinfo_estate.port} ${dbinfo_estate.database} < ${execfile}`
       );
     }
     res.json({
@@ -58,9 +78,14 @@ app.post("/initialize", async (req, res, next) => {
   }
 });
 
+function getConnection(key) {
+  const dbOfInterest = dbs[key];
+  return promisify(dbOfInterest.getConnection.bind(dbOfInterest))();
+}
+
 app.get("/api/estate/low_priced", async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('estate');
   const query = promisify(connection.query.bind(connection));
   try {
     const es = await query(
@@ -78,8 +103,7 @@ app.get("/api/estate/low_priced", async (req, res, next) => {
 });
 
 app.get("/api/chair/low_priced", async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  const connection = await getConnection('chair');
   const query = promisify(connection.query.bind(connection));
   try {
     const cs = await query(
@@ -226,8 +250,8 @@ app.get("/api/chair/search", async (req, res, next) => {
   const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM chair WHERE ";
 
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('chair');
   const query = promisify(connection.query.bind(connection));
   try {
     const countQuery = query(
@@ -256,8 +280,8 @@ app.get("/api/chair/search/condition", (req, res, next) => {
 });
 
 app.get("/api/chair/:id", async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('chair');
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
@@ -276,8 +300,8 @@ app.get("/api/chair/:id", async (req, res, next) => {
 });
 
 app.post("/api/chair/buy/:id", async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('chair');
   const beginTransaction = promisify(connection.beginTransaction.bind(connection));
   const query = promisify(connection.query.bind(connection));
   const commit = promisify(connection.commit.bind(connection));
@@ -388,8 +412,8 @@ app.get("/api/estate/search", async (req, res, next) => {
   const limitOffset = " ORDER BY popularity DESC, id ASC LIMIT ? OFFSET ?";
   const countprefix = "SELECT COUNT(*) as count FROM estate WHERE ";
 
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('estate');
   const query = promisify(connection.query.bind(connection));
   try {
     const countQuery = query(
@@ -419,8 +443,8 @@ app.get("/api/estate/search/condition", (req, res, next) => {
 
 app.post("/api/estate/req_doc/:id", async (req, res, next) => {
   const id = req.params.id;
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('estate');
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
@@ -453,8 +477,8 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
     },
   };
 
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('estate');
   const query = promisify(connection.query.bind(connection));
   try {
     const estates = await query(
@@ -524,8 +548,8 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
 });
 
 app.get("/api/estate/:id", async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('estate');
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
@@ -546,15 +570,17 @@ app.get("/api/estate/:id", async (req, res, next) => {
 
 app.get("/api/recommended_estate/:id", async (req, res, next) => {
   const id = req.params.id;
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
-  const query = promisify(connection.query.bind(connection));
+  
+  const connection_chair = await getConnection('chair');
+  const connection_estate = await getConnection('estate');
+  const query_chair = promisify(connection_chair.query.bind(connection_chair));
+  const query_estate = promisify(connection_estate.query.bind(connection_estate));
   try {
-    const [chair] = await query("SELECT * FROM chair WHERE id = ?", [id]);
+    const [chair] = await query_chair("SELECT * FROM chair WHERE id = ?", [id]);
     const w = chair.width;
     const h = chair.height;
     const d = chair.depth;
-    const es = await query(
+    const es = await query_estate(
       // NOTE: なんだこのクエリは
       // done: ナイーブに考えると door_width, door_height にインデックスをはる？
       // TODO: クエリ自体の改善や，キャッシュ的にことはできるのでは
@@ -578,13 +604,14 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
   } catch (e) {
     next(e);
   } finally {
-    await connection.release();
+    await connection_chair.release();
+    await connection_estate.release();
   }
 });
 
 app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('chair');
   const beginTransaction = promisify(connection.beginTransaction.bind(connection));
   const query = promisify(connection.query.bind(connection));
   const commit = promisify(connection.commit.bind(connection));
@@ -627,8 +654,8 @@ function getDoorHeightRangeId(doorHeight) {
 }
 
 app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
-  const getConnection = promisify(db.getConnection.bind(db));
-  const connection = await getConnection();
+  
+  const connection = await getConnection('estate');
   const beginTransaction = promisify(connection.beginTransaction.bind(connection));
   const query = promisify(connection.query.bind(connection));
   const commit = promisify(connection.commit.bind(connection));
