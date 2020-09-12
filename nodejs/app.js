@@ -229,15 +229,16 @@ app.get("/api/chair/search", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const [{ count }] = await query(
+    const countQuery = query(
       `${countprefix}${searchCondition}`,
       queryParams
     );
     queryParams.push(perPageNum, perPageNum * pageNum);
-    const chairs = await query(
+    const chairsQuery = query(
       `${sqlprefix}${searchCondition}${limitOffset}`,
       queryParams
     );
+    const [{ count }, chairs] = await Promise.all([countQuery, chairsQuery]);
     res.json({
       count,
       chairs: camelcaseKeys(chairs),
@@ -413,15 +414,16 @@ app.get("/api/estate/search", async (req, res, next) => {
   const connection = await getConnection();
   const query = promisify(connection.query.bind(connection));
   try {
-    const [{ count }] = await query(
+    const countQuery = query(
       `${countprefix}${searchCondition}`,
       queryParams
     );
     queryParams.push(perPageNum, perPageNum * pageNum);
-    const estates = await query(
+    const estatesQuery = query(
       `${sqlprefix}${searchCondition}${limitOffset}`,
       queryParams
     );
+    const [{ count }, estates] = await Promise.all([countQuery, estatesQuery]);
     res.json({
       count,
       estates: camelcaseKeys(estates),
