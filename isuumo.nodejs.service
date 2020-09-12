@@ -6,6 +6,7 @@ WorkingDirectory=/home/isucon/isuumo/webapp/nodejs
 EnvironmentFile=/home/isucon/env.sh
 Environment=PATH=/home/isucon/local/node/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 PIDFile=/home/isucon/isuumo/webapp/nodejs/server.pid
+LimitNOFILE=65535
 
 User=isucon
 Group=isucon
