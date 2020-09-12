@@ -628,7 +628,15 @@ app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
  * rent から rent_range_id をえる　
  */
 function findRangeIdByRent(rent) {
-  return estateSearchCondition.rent.ranges.find(range => range.min <= rent && rent < range.max).id;
+  return estateSearchCondition.rent.ranges.find(range => range.min <= rent && rent < (range.max == -1 ? Infinity : range.max)).id;
+}
+
+function getDoorWidthRangeId(doorWidth) {
+  return estateSearchCondition.doorWidth.ranges.find(range => range.min <= doorWidth && doorWidth < (range.max == -1 ? Infinity : range.max)).id;
+}
+
+function getDoorHeightRangeId(doorHeight) {
+  return estateSearchCondition.doorHeight.ranges.find(range => range.min <= doorHeight && doorHeight < (range.max == -1 ? Infinity : range.max)).id;
 }
 
 app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
