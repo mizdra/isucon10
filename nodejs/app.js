@@ -231,12 +231,12 @@ app.get("/api/chair/search", async (req, res, next) => {
   try {
     const countQuery = query(
       `${countprefix}${searchCondition}`,
-      queryParams
+      [...queryParams] // clone array
     );
     queryParams.push(perPageNum, perPageNum * pageNum);
     const chairsQuery = query(
       `${sqlprefix}${searchCondition}${limitOffset}`,
-      queryParams
+      [...queryParams] // clone array
     );
     const [{ count }, chairs] = await Promise.all([countQuery, chairsQuery]);
     res.json({
@@ -416,12 +416,12 @@ app.get("/api/estate/search", async (req, res, next) => {
   try {
     const countQuery = query(
       `${countprefix}${searchCondition}`,
-      queryParams
+      [...queryParams] // clone array
     );
     queryParams.push(perPageNum, perPageNum * pageNum);
     const estatesQuery = query(
       `${sqlprefix}${searchCondition}${limitOffset}`,
-      queryParams
+      [...queryParams] // clone array
     );
     const [{ count }, estates] = await Promise.all([countQuery, estatesQuery]);
     res.json({
