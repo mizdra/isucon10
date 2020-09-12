@@ -2,7 +2,7 @@
 set -eux
 
 # SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL
-# REMOTE="isucon@isucon01"
+REMOTE="isucon-server1"
 # REMOTE_LIST="isucon01 isucon02 isucon03"
 # BACKEND="isucon01 isucon02 isucon03"
 # DB="isucon01"
@@ -11,7 +11,7 @@ NGINX="isucon-server1"
 # /etc/sudoersに追加する
 # Defaults!/usr/bin/rsync    !requiretty
 function RSYNC() {
-  rsync --rsync-path='sudo rsync' -avz --exclude-from=.gitignore --exclude='.git' -e 'ssh' "$1"
+  rsync --rsync-path='sudo rsync' -avz --exclude-from=.gitignore --exclude='.git' -e 'ssh' "$1" "$REMOTE:$2"
 }
 
 # function RSYNC_GIT() {
