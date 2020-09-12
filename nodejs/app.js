@@ -360,22 +360,15 @@ app.get("/api/estate/search", async (req, res, next) => {
     }
   }
 
+  // done: rent_range_id を使うようにした
   if (!!rentRangeId) {
     const rent = estateSearchCondition["rent"].ranges[rentRangeId];
-    if (rent == null) {
+    if (rent == null || rent.id != rentRangeId) {
       res.status(400).send("rentRangeId invalid");
       return;
     }
-
-    if (rent.min !== -1) {
-      searchQueries.push("rent >= ? ");
-      queryParams.push(rent.min);
-    }
-
-    if (rent.max !== -1) {
-      searchQueries.push("rent < ? ");
-      queryParams.push(rent.max);
-    }
+    searchQueries.push('rent_range_id = ?');
+    queryParams.push(rentRangeId);
   }
 
   if (!!features) {
