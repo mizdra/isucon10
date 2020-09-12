@@ -14,6 +14,7 @@ CREATE TABLE isuumo.estate
     latitude    DOUBLE PRECISION    NOT NULL,
     longitude   DOUBLE PRECISION    NOT NULL,
     rent        INTEGER             NOT NULL,
+    rent_range_id INTEGER NOT NULL DEFAULT 0,
     door_height INTEGER             NOT NULL,
     door_width  INTEGER             NOT NULL,
     features    VARCHAR(64)         NOT NULL,
