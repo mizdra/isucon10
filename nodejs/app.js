@@ -644,9 +644,10 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
     // TODO: N+1! だけど アップロードだからスコアに関係するのかな…
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
+      const rentRangeId = findRangeIdByRent(items[7]);
       await query(
-        "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-        items
+        "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity, rent_range_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        [...items, rentRangeId]
       );
     }
     await commit();
