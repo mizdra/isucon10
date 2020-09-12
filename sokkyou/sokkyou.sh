@@ -5,7 +5,7 @@ set -eux
 REMOTE="isucon-server1"
 # REMOTE_LIST="isucon01 isucon02 isucon03"
 # BACKEND="isucon01 isucon02 isucon03"
-# DB="isucon01"
+MYSQL="isucon-server1"
 NGINX="isucon-server1"
 
 # /etc/sudoersに追加する
