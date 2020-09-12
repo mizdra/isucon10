@@ -14,11 +14,18 @@ CREATE TABLE isuumo.estate
     latitude    DOUBLE PRECISION    NOT NULL,
     longitude   DOUBLE PRECISION    NOT NULL,
     rent        INTEGER             NOT NULL,
+    rent_range_id INTEGER NOT NULL DEFAULT 0,
     door_height INTEGER             NOT NULL,
+    door_height_range_id INTEGER NOT NULL DEFAULT 0,
     door_width  INTEGER             NOT NULL,
+    door_width_range_id INTEGER NOT NULL DEFAULT 0,
     features    VARCHAR(64)         NOT NULL,
     popularity  INTEGER             NOT NULL,
-    KEY `rent_id` (`rent` ASC, `id` ASC)
+    KEY `rent_id` (`rent`,`id`),
+    KEY `door_height_door_width_rent` (`door_height_range_id`,`door_width_range_id`,`rent_range_id`),
+    KEY `door_width_and_door_height` (`door_width`,`door_height`),
+    KEY `rent_range_id` (`rent_range_id`),
+    KEY `door_height_range_id` (`door_height_range_id`)
 );
 
 CREATE TABLE isuumo.chair

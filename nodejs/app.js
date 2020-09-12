@@ -42,6 +42,7 @@ app.post("/initialize", async (req, res, next) => {
       "0_Schema.sql",
       "1_DummyEstateData.sql",
       "2_DummyChairData.sql",
+      "3_UpdateEstateData.sql",
     ];
     const execfiles = dbfiles.map((file) => path.join(dbdir, file));
     for (const execfile of execfiles) {
@@ -329,16 +330,8 @@ app.get("/api/estate/search", async (req, res, next) => {
       res.status(400).send("doorHeightRangeId invalid");
       return;
     }
-
-    if (doorHeight.min !== -1) {
-      searchQueries.push("door_height >= ? ");
-      queryParams.push(doorHeight.min);
-    }
-
-    if (doorHeight.max !== -1) {
-      searchQueries.push("door_height < ? ");
-      queryParams.push(doorHeight.max);
-    }
+    searchQueries.push("door_height_range_id = ?");
+    queryParams.push(doorHeightRangeId);
   }
 
   if (!!doorWidthRangeId) {
@@ -348,34 +341,19 @@ app.get("/api/estate/search", async (req, res, next) => {
       res.status(400).send("doorWidthRangeId invalid");
       return;
     }
-
-    if (doorWidth.min !== -1) {
-      searchQueries.push("door_width >= ? ");
-      queryParams.push(doorWidth.min);
-    }
-
-    if (doorWidth.max !== -1) {
-      searchQueries.push("door_width < ? ");
-      queryParams.push(doorWidth.max);
-    }
+    searchQueries.push("door_width_range_id = ?");
+    queryParams.push(doorWidthRangeId);
   }
 
+  // done: rent_range_id を使うようにした
   if (!!rentRangeId) {
     const rent = estateSearchCondition["rent"].ranges[rentRangeId];
-    if (rent == null) {
+    if (rent == null || rent.id != rentRangeId) {
       res.status(400).send("rentRangeId invalid");
       return;
     }
-
-    if (rent.min !== -1) {
-      searchQueries.push("rent >= ? ");
-      queryParams.push(rent.min);
-    }
-
-    if (rent.max !== -1) {
-      searchQueries.push("rent < ? ");
-      queryParams.push(rent.max);
-    }
+    searchQueries.push('rent_range_id = ?');
+    queryParams.push(rentRangeId);
   }
 
   if (!!features) {
@@ -576,7 +554,7 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     const d = chair.depth;
     const es = await query(
       // NOTE: なんだこのクエリは
-      // TODO: ナイーブに考えると door_width, door_height にインデックスをはる？
+      // done: ナイーブに考えると door_width, door_height にインデックスをはる？
       // TODO: クエリ自体の改善や，キャッシュ的にことはできるのでは
       `
         SELECT *
@@ -631,6 +609,21 @@ app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
   }
 });
 
+/**
+ * rent から rent_range_id をえる　
+ */
+function findRangeIdByRent(rent) {
+  return estateSearchCondition.rent.ranges.find(range => range.min <= rent && rent < (range.max == -1 ? Infinity : range.max)).id;
+}
+
+function getDoorWidthRangeId(doorWidth) {
+  return estateSearchCondition.doorWidth.ranges.find(range => range.min <= doorWidth && doorWidth < (range.max == -1 ? Infinity : range.max)).id;
+}
+
+function getDoorHeightRangeId(doorHeight) {
+  return estateSearchCondition.doorHeight.ranges.find(range => range.min <= doorHeight && doorHeight < (range.max == -1 ? Infinity : range.max)).id;
+}
+
 app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
   const getConnection = promisify(db.getConnection.bind(db));
   const connection = await getConnection();
@@ -644,9 +637,12 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
     // TODO: N+1! だけど アップロードだからスコアに関係するのかな…
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
+      const rentRangeId = findRangeIdByRent(items[7]);
+      const doorHeightRangeId = getDoorHeightRangeId(items[8] | 0);
+      const doorWidthRangeId = getDoorWidthRangeId(items[9] | 0);
       await query(
-        "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-        items
+        "INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity, door_height_range_id, door_width_range_id, rent_range_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        [...items, doorHeightRangeId, doorWidthRangeId, rentRangeId]
       );
     }
     await commit();
