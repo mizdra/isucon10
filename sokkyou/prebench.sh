@@ -11,5 +11,4 @@ done
 
 ssh "isucon@$MYSQL" "if [ -f /var/log/mysql/mysql-slow.log ]; then sudo mv /var/log/mysql/mysql-slow.log /var/log/mysql/mysql-slow.log.$DATE; fi"
 
-./sokkyou/deploy_nginx.sh
-./sokkyou/deploy_mysql.sh
+./sokkyou/deploy.sh
