@@ -238,7 +238,7 @@ app.get("/api/chair/search", async (req, res, next) => {
       `${sqlprefix}${searchCondition}${limitOffset}`,
       [...queryParams] // clone array
     );
-    const [{ count }, chairs] = await Promise.all([countQuery, chairsQuery]);
+    const [[{ count }], chairs] = await Promise.all([countQuery, chairsQuery]);
     res.json({
       count,
       chairs: camelcaseKeys(chairs),
@@ -423,7 +423,7 @@ app.get("/api/estate/search", async (req, res, next) => {
       `${sqlprefix}${searchCondition}${limitOffset}`,
       [...queryParams] // clone array
     );
-    const [{ count }, estates] = await Promise.all([countQuery, estatesQuery]);
+    const [[{ count }], estates] = await Promise.all([countQuery, estatesQuery]);
     res.json({
       count,
       estates: camelcaseKeys(estates),
