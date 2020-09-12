@@ -80,6 +80,7 @@ app.get("/api/chair/low_priced", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const cs = await query(
+      // TODO: stock インデックスはるとよいのだろうか (index <= 0 は 13:49 現在 11 件ある)
       "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?",
       [LIMIT]
     );
@@ -256,6 +257,7 @@ app.get("/api/chair/:id", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
+    // このクエリは primary key なので余地はない
     const [chair] = await query("SELECT * FROM chair WHERE id = ?", [id]);
     if (chair == null || chair.stock <= 0) {
       res.status(404).send("Not Found");
@@ -282,6 +284,8 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
     const [
       chair,
     ] = await query(
+      // TODO: stock にインデックスをはりましょう
+      // NOTE: ロックがかかっている
       "SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE",
       [id]
     );
@@ -438,6 +442,7 @@ app.post("/api/estate/req_doc/:id", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
+    // NOTE: ここは primary だから余地なし
     const [estate] = await query("SELECT * FROM estate WHERE id = ?", [id]);
     if (estate == null) {
       res.status(404).send("Not Found");
@@ -471,7 +476,18 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const estates = await query(
-      "SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC",
+      // TODO: 雑にいうと latitude, longitude にインデックスかな…
+      // NOTE: nazotte はスコアに影響するかな…
+      `
+        SELECT *
+        FROM estate
+        WHERE
+            latitude <= ?
+        AND latitude >= ?
+        AND longitude <= ?
+        AND longitude >= ?
+        ORDER BY popularity DESC, id ASC
+      `,
       [
         boundingbox.bottomright.latitude,
         boundingbox.topleft.latitude,
@@ -487,6 +503,7 @@ app.post("/api/estate/nazotte", async (req, res, next) => {
         estate.latitude,
         estate.longitude
       );
+      // TODO: Geometry 型にできたりしないかな．そうしてインデックスを貼るべき？
       const sql =
         "SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))";
       const coordinatesToText = util.format(
@@ -530,6 +547,7 @@ app.get("/api/estate/:id", async (req, res, next) => {
   const query = promisify(connection.query.bind(connection));
   try {
     const id = req.params.id;
+    // NOTE: ここは primary key なので余地なし
     const [estate] = await query("SELECT * FROM estate WHERE id = ?", [id]);
     if (estate == null) {
       res.status(404).send("Not Found");
@@ -555,7 +573,22 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     const h = chair.height;
     const d = chair.depth;
     const es = await query(
-      "SELECT * FROM estate where (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>= ?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) OR (door_width >= ? AND door_height>=?) ORDER BY popularity DESC, id ASC LIMIT ?",
+      // NOTE: なんだこのクエリは
+      // TODO: ナイーブに考えると door_width, door_height にインデックスをはる？
+      // TODO: クエリ自体の改善や，キャッシュ的にことはできるのでは
+      `
+        SELECT *
+        FROM estate
+        where
+             (door_width >= ? AND door_height>= ?)
+          OR (door_width >= ? AND door_height>= ?)
+          OR (door_width >= ? AND door_height>=?)
+          OR (door_width >= ? AND door_height>=?)
+          OR (door_width >= ? AND door_height>=?)
+          OR (door_width >= ? AND door_height>=?)
+          ORDER BY popularity DESC, id ASC
+          LIMIT ?
+      `,
       [w, h, w, d, h, w, h, d, d, w, d, h, LIMIT]
     );
     const estates = es.map((estate) => camelcaseKeys(estate));
@@ -579,6 +612,7 @@ app.post("/api/chair", upload.single("chairs"), async (req, res, next) => {
     const csv = parse(req.file.buffer, { skip_empty_line: true });
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
+      // TODO: N+1! だけど アップロードだからスコアに関係するのかな…
       await query(
         "INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
         items
@@ -605,6 +639,7 @@ app.post("/api/estate", upload.single("estates"), async (req, res, next) => {
   try {
     await beginTransaction();
     const csv = parse(req.file.buffer, { skip_empty_line: true });
+    // TODO: N+1! だけど アップロードだからスコアに関係するのかな…
     for (var i = 0; i < csv.length; i++) {
       const items = csv[i];
       await query(
