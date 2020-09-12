@@ -1,12 +1,14 @@
 #!/bin/bash
 set -eux
 
-# SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL
-REMOTE="isucon-server1"
-# REMOTE_LIST="isucon01 isucon02 isucon03"
-# BACKEND="isucon01 isucon02 isucon03"
-MYSQL="isucon-server1"
-NGINX="isucon-server1"
+# デフォルトでは isucon-server1 にデプロイ、REMOTE_LIST環境変数が指定されていれば、そのホストにデプロイする
+# ex: isucon-server2 にデプロイする場合
+#  REMOTE_LIST="isucon-server2" ./sokkyou/deploy_mysql.sh
+# ex: isucon-server1 及び isucon-server2 にデプロイする場合
+#  REMOTE_LIST="isucon-server1 isucon-server2" ./sokkyou/deploy_mysql.sh
+BACKEND=${REMOTE_LIST:-"isucon-server1"}
+MYSQL=${REMOTE_LIST:-"isucon-server1"}
+NGINX=${REMOTE_LIST:-"isucon-server1"}
 
 # /etc/sudoersに追加する
 # Defaults!/usr/bin/rsync    !requiretty
