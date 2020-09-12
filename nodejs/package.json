@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "0x --output-dir /tmp/0x -- node app.js"
+    "start": "0x --output-dir /tmp/0x -- node --inspect app.js"
   },
   "repository": {
     "type": "git",
