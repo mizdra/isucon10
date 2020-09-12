@@ -329,16 +329,8 @@ app.get("/api/estate/search", async (req, res, next) => {
       res.status(400).send("doorHeightRangeId invalid");
       return;
     }
-
-    if (doorHeight.min !== -1) {
-      searchQueries.push("door_height >= ? ");
-      queryParams.push(doorHeight.min);
-    }
-
-    if (doorHeight.max !== -1) {
-      searchQueries.push("door_height < ? ");
-      queryParams.push(doorHeight.max);
-    }
+    searchQueries.push("door_height_range_id = ?");
+    queryParams.push(doorHeightRangeId);
   }
 
   if (!!doorWidthRangeId) {
@@ -348,16 +340,8 @@ app.get("/api/estate/search", async (req, res, next) => {
       res.status(400).send("doorWidthRangeId invalid");
       return;
     }
-
-    if (doorWidth.min !== -1) {
-      searchQueries.push("door_width >= ? ");
-      queryParams.push(doorWidth.min);
-    }
-
-    if (doorWidth.max !== -1) {
-      searchQueries.push("door_width < ? ");
-      queryParams.push(doorWidth.max);
-    }
+    searchQueries.push("door_width_range_id = ?");
+    queryParams.push(doorWidthRangeId);
   }
 
   // done: rent_range_id を使うようにした
