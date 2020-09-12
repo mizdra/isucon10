@@ -109,7 +109,7 @@ app.get("/api/chair/low_priced", async (req, res, next) => {
   try {
     const cs = await query(
       // done: stock インデックスはるとよいのだろうか (index <= 0 は 13:49 現在 11 件ある)
-      "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT ?",
+      "SELECT * FROM chair ORDER BY price ASC, id ASC LIMIT ?",
       [LIMIT]
     );
     const chairs = cs.map((chair) => camelcaseKeys(chair));
@@ -231,8 +231,6 @@ app.get("/api/chair/search", async (req, res, next) => {
     return;
   }
 
-  searchQueries.push("stock > 0");
-
   if (!page || page != +page) {
     res.status(400).send(`page condition invalid ${page}`);
     return;
@@ -315,7 +313,7 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
     ] = await query(
       // TODO: stock にインデックスをはりましょう
       // NOTE: ロックがかかっている
-      "SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE",
+      "SELECT * FROM chair WHERE id = ? FOR UPDATE",
       [id]
     );
     if (chair == null) {
@@ -323,10 +321,17 @@ app.post("/api/chair/buy/:id", async (req, res, next) => {
       await rollback();
       return;
     }
-    await query("UPDATE chair SET stock = ? WHERE id = ?", [
-      chair.stock - 1,
-      id,
-    ]);
+    // delete or update
+    if (chair.stock > 1) {
+      await query("UPDATE chair SET stock = ? WHERE id = ?", [
+        chair.stock - 1,
+        id,
+      ]);
+    } else {
+      await query("DELETE FROM chair WHERE id = ?", [
+        id,
+      ]);
+    }
     await commit();
     res.json({ ok: true });
   } catch (e) {
