@@ -1,0 +1,75 @@
+● team437-001
+    State: running
+     Jobs: 0 queued
+   Failed: 0 units
+    Since: Sat 2020-09-12 01:25:02 UTC; 2h 27min ago
+   CGroup: /
+           ├─user.slice
+           │ └─user-1100.slice
+           │   ├─session-20.scope
+           │   │ ├─2603 sshd: isucon [priv]
+           │   │ ├─2670 sshd: isucon@pts/1
+           │   │ └─2671 -bash
+           │   ├─session-18.scope
+           │   │ ├─2500 sshd: isucon [priv]
+           │   │ ├─2578 sshd: isucon@pts/0
+           │   │ └─2579 -bash
+           │   ├─user@1100.service
+           │   │ └─init.scope
+           │   │   ├─2502 /lib/systemd/systemd --user
+           │   │   └─2503 (sd-pam)
+           │   └─session-26.scope
+           │     ├─3024 sshd: isucon [priv]
+           │     ├─3091 sshd: isucon@pts/2
+           │     ├─3092 -bash
+           │     └─3112 systemctl status
+           ├─init.scope
+           │ └─1 /sbin/init
+           └─system.slice
+             ├─systemd-networkd.service
+             │ └─695 /lib/systemd/systemd-networkd
+             ├─systemd-udevd.service
+             │ └─433 /lib/systemd/systemd-udevd
+             ├─cron.service
+             │ └─998 /usr/sbin/cron -f
+             ├─system-serial\x2dgetty.slice
+             │ └─serial-getty@ttyS0.service
+             │   └─1012 /sbin/agetty -o -p -- \u --keep-baud 115200,38400,9600 ttyS0 vt220
+             ├─nginx.service
+             │ ├─1182 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
+             │ └─1185 nginx: worker process
+             ├─polkit.service
+             │ └─1135 /usr/lib/policykit-1/polkitd --no-debug
+             ├─networkd-dispatcher.service
+             │ └─932 /usr/bin/python3 /usr/bin/networkd-dispatcher --run-startup-triggers
+             ├─accounts-daemon.service
+             │ └─923 /usr/lib/accountsservice/accounts-daemon
+             ├─systemd-journald.service
+             │ └─407 /lib/systemd/systemd-journald
+             ├─atd.service
+             │ └─972 /usr/sbin/atd -f
+             ├─unattended-upgrades.service
+             │ └─1077 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal
+             ├─ssh.service
+             │ └─1295 /usr/sbin/sshd -D
+             ├─mysql.service
+             │ └─1354 /usr/sbin/mysqld --daemonize --pid-file=/run/mysqld/mysqld.pid
+             ├─rsyslog.service
+             │ └─925 /usr/sbin/rsyslogd -n
+             ├─lxcfs.service
+             │ └─949 /usr/bin/lxcfs /var/lib/lxcfs/
+             ├─lvm2-lvmetad.service
+             │ └─430 /sbin/lvmetad -f
+             ├─isuumo.go.service
+             │ └─971 /home/isucon/isuumo/webapp/go/isuumo
+             ├─systemd-resolved.service
+             │ └─716 /lib/systemd/systemd-resolved
+             ├─dbus.service
+             │ └─894 /usr/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+             ├─systemd-timesyncd.service
+             │ └─572 /lib/systemd/systemd-timesyncd
+             ├─system-getty.slice
+             │ └─getty@tty1.service
+             │   └─1052 /sbin/agetty -o -p -- \u --noclear tty1 linux
+             └─systemd-logind.service
+               └─950 /lib/systemd/systemd-logind
