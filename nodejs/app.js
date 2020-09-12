@@ -554,7 +554,7 @@ app.get("/api/recommended_estate/:id", async (req, res, next) => {
     const d = chair.depth;
     const es = await query(
       // NOTE: なんだこのクエリは
-      // TODO: ナイーブに考えると door_width, door_height にインデックスをはる？
+      // done: ナイーブに考えると door_width, door_height にインデックスをはる？
       // TODO: クエリ自体の改善や，キャッシュ的にことはできるのでは
       `
         SELECT *
